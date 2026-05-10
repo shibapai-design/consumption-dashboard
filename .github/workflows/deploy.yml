@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths: ['dashboard.html']
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,22 +12,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          sparse-checkout: |
+            dashboard.html
+          sparse-checkout-cone-mode: false
+
+      - name: Verify dashboard exists
+        run: |
+          echo "=== dashboard.html 内容预览 ==="
+          head -5 dashboard.html
+          echo "..."
+          echo "文件大小: $(wc -c < dashboard.html) bytes"
 
       - name: Deploy to Cloudflare Pages
-        run: |
-          npm install -g wrangler
-          wrangler auth --token "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          wrangler pages deploy . --project-name=consumption-dashboard --commit-hash="${{ github.sha }}"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Comment deployment URL
-        if: env.DEPLOY_URL != ''
-        run: |
-          echo "✅ Dashboard 已部署: ${{ env.DEPLOY_URL }}"
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: consumption-dashboard
+          directory: .
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
