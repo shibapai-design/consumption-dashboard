@@ -1,0 +1,32 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths: ['dashboard.html']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy to Cloudflare Pages
+        run: |
+          npm install -g wrangler
+          wrangler auth --token "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          wrangler pages deploy . --project-name=consumption-dashboard --commit-hash="${{ github.sha }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Comment deployment URL
+        if: env.DEPLOY_URL != ''
+        run: |
+          echo "✅ Dashboard 已部署: ${{ env.DEPLOY_URL }}"
