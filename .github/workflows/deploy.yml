@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,11 +19,39 @@ jobs:
             dashboard.html
           sparse-checkout-cone-mode: false
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Pages via API
         run: |
-          npm install -g wrangler
-          echo '${{ secrets.CLOUDFLARE_API_TOKEN }}' | wrangler login --token
-          wrangler pages deploy . --project-name=consumption-dashboard --commit-hash="${{ github.sha }}"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          echo "=== 文件信息 ==="
+          echo "dashboard.html size: $(wc -c < dashboard.html) bytes"
+          
+          ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          
+          echo "=== 获取上传 URL ==="
+          RESP=$(curl -s -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/assets/upload" \
+            -H "Authorization: Bearer ${API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"manifest":{"manifest_version":2,"files":{"dashboard.html":{"content_type":"text/html","size":'"$(wc -c < dashboard.html)"'}}}}')
+          
+          echo "上传响应: $RESP"
+          
+          UPLOAD_URL=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('upload_url',''))")
+          SHORT_ID=$(echo "$RESP" python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('short_id',''))")
+          
+          echo "UPLOAD_URL: $UPLOAD_URL"
+          echo "SHORT_ID: $SHORT_ID"
+          
+          if [ -z "$UPLOAD_URL" ]; then
+            echo "❌ 获取上传 URL 失败"
+            exit 1
+          fi
+          
+          echo "=== 上传 dashboard.html ==="
+          curl -s -X PUT "$UPLOAD_URL" \
+            -H "Content-Type: text/html" \
+            --data-binary @dashboard.html
+          
+          echo ""
+          echo "=== 完成 ==="
+          echo "✅ Dashboard 部署成功: https://consumption-dashboard.pages.dev"
