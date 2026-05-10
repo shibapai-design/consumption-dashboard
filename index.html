@@ -41,7 +41,7 @@ th.num,td.num{text-align:right}
 
 <div class="header">
   <h1>📊 客户消耗报表</h1>
-  <p>数据周期：2026-05-01~2026-05-09 &nbsp;|&nbsp; 更新于 2026-05-10 14:57</p>
+  <p>数据周期：2026-05-01~2026-05-09 &nbsp;|&nbsp; 更新于 2026-05-10 15:03</p>
 </div>
 
 <div class="kpi-row">
@@ -214,8 +214,8 @@ chart3.setOption({
   }},
   legend: { data: ['线索消耗','交易消耗','合计'], textStyle: { color: '#8888aa' }, top: 5 },
   grid: { left: 80, right: 40, top: 40, bottom: 30 },
-  xAxis: { type: 'category', data: ['2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-09'], ...makeAxis(), axisLabel: { fontSize: 11 } },
-  yAxis: { type: 'value', ...makeAxis(), axisLabel: { formatter: '¥{value}' } },
+  xAxis: { type: 'category', data: ['2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-09'], axisLine: { lineStyle: { color: '#2a2a4a' } }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#1e1e3a', type: 'dashed' } }, axisLabel: { color: '#c0c0d8', fontSize: 12 } },
+  yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a2a4a' } }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#1e1e3a', type: 'dashed' } }, axisLabel: { color: '#c0c0d8', fontSize: 12, formatter: '¥{value}' } },
   series: [
     { name: '线索消耗', type: 'line', data: [5224.70, 5832.22, 5584.90, 4970.75, 4201.48, 2654.83, 3897.04, 3924.82, 4299.05], smooth: true, lineStyle: { color: '#00c853', width: 2 }, itemStyle: { color: '#00c853' } },
     { name: '交易消耗', type: 'line', data: [5386.02, 6705.90, 6419.34, 4606.01, 1723.55, 560.31, 164.16, 672.55, 1016.13], smooth: true, lineStyle: { color: '#0070f3', width: 2 }, itemStyle: { color: '#0070f3' } },
@@ -231,8 +231,8 @@ chart4.setOption({
   }},
   legend: { data: ['直播-线索','直播-交易','非直播-线索','非直播-交易'], textStyle: { color: '#8888aa' }, top: 5 },
   grid: { left: 80, right: 20, top: 40, bottom: 30 },
-  xAxis: { type: 'category', data: ['2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-09'], ...makeAxis(), axisLabel: { fontSize: 11 } },
-  yAxis: { type: 'value', ...makeAxis(), axisLabel: { formatter: '¥{value}' } },
+  xAxis: { type: 'category', data: ['2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-09'], axisLine: { lineStyle: { color: '#2a2a4a' } }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#1e1e3a', type: 'dashed' } }, axisLabel: { color: '#c0c0d8', fontSize: 12 } },
+  yAxis: { type: 'value', axisLine: { lineStyle: { color: '#2a2a4a' } }, axisTick: { show: false }, splitLine: { lineStyle: { color: '#1e1e3a', type: 'dashed' } }, axisLabel: { color: '#c0c0d8', fontSize: 12, formatter: '¥{value}' } },
   series: [
     { name: '直播-线索', type: 'bar', stack: 'live', data: [799.22, 800.00, 835.21, 794.99, 858.86, 49.99, 46.99, 727.05, 872.16], itemStyle: { color: '#ff6d00' } },
     { name: '直播-交易', type: 'bar', stack: 'live', data: [3494.15, 4495.94, 4722.81, 3706.27, 1223.55, 377.57, 0.00, 373.39, 618.44], itemStyle: { color: '#ff9100' } },
