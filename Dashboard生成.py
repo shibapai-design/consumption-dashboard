@@ -47,6 +47,24 @@ def generate_html(df, date_range_str, output_path):
     live_total  = live_clue + live_trade
     nonlive_total = nonlive_clue + nonlive_trade
 
+    # 前一日消耗（最新一天之前的合计）
+    if len(daily) >= 2:
+        prev_day = daily.iloc[-2]  # 倒数第二行 = 昨天（最新数据的上一日）
+        prev_total = prev_day["合计"]
+        prev_date = prev_day["日期_str"]
+        prev_clue = prev_day["线索"]
+        prev_trade = prev_day["交易"]
+    elif len(daily) == 1:
+        prev_total = 0
+        prev_date = daily.iloc[0]["日期_str"]
+        prev_clue = 0
+        prev_trade = 0
+    else:
+        prev_total = 0
+        prev_date = ""
+        prev_clue = 0
+        prev_trade = 0
+
     # 每日直播/非直播
     live_daily = df[df["推广形式"] == "直播计划"].groupby("日期_str").agg(
         线索=("本地线索消耗", "sum"), 交易=("本地推交易消耗", "sum")
@@ -83,13 +101,15 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHe
 .header{{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:24px 40px;border-bottom:1px solid #2a2a4a}}
 .header h1{{font-size:22px;font-weight:600;color:#fff;letter-spacing:1px}}
 .header p{{font-size:13px;color:#8888aa;margin-top:4px}}
-.kpi-row{{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px 40px}}
+.kpi-row{{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;padding:24px 40px}}
 .kpi-card{{background:linear-gradient(135deg,#1e1e3a 0%,#252545 100%);border-radius:12px;padding:20px 24px;border:1px solid #2e2e50;position:relative;overflow:hidden}}
 .kpi-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:3px}}
+.kpi-card.red::before{{background:linear-gradient(90deg,#e53935,#b71c1c)}}
 .kpi-card.orange::before{{background:linear-gradient(90deg,#ff8c00,#ff5500)}}
 .kpi-card.green::before{{background:linear-gradient(90deg,#00c853,#009624)}}
 .kpi-card.blue::before{{background:linear-gradient(90deg,#0070f3,#0041b8)}}
 .kpi-card.purple::before{{background:linear-gradient(90deg,#9c27b0,#6a1b9a)}}
+.kpi-card.teal::before{{background:linear-gradient(90deg,#00897b,#00695c)}}
 .kpi-label{{font-size:12px;color:#8888aa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}}
 .kpi-value{{font-size:28px;font-weight:700;color:#fff}}
 .kpi-sub{{font-size:11px;color:#6666aa;margin-top:4px}}
@@ -116,6 +136,11 @@ th.num,td.num{{text-align:right}}
 </div>
 
 <div class="kpi-row">
+  <div class="kpi-card red">
+    <div class="kpi-label">前一日消耗</div>
+    <div class="kpi-value">¥{prev_total:,.2f}</div>
+    <div class="kpi-sub">{prev_date} 合计</div>
+  </div>
   <div class="kpi-card orange">
     <div class="kpi-label">总消耗</div>
     <div class="kpi-value">¥{total_all:,.2f}</div>
@@ -199,7 +224,7 @@ chart1.setOption({
   legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#8888aa' } },
   series: [{
     type: 'pie', radius: ['40%', '70%'], center: ['40%', '50%'],
-    label: { color: '#d0d0ee', formatter: '{b}\\n¥{c}' },
+    label: { color: '#d0d0ee', formatter: '{b}\n¥{c}' },
     data: [
       { value: """ + f"{total_clue:.2f}" + """, name: '线索消耗', itemStyle: { color: '#00c853' } },
       { value: """ + f"{total_trade:.2f}" + """, name: '交易消耗', itemStyle: { color: '#0070f3' } }
@@ -212,7 +237,7 @@ chart2.setOption({
   legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#8888aa' } },
   series: [{
     type: 'pie', radius: ['40%', '70%'], center: ['40%', '50%'],
-    label: { color: '#d0d0ee', formatter: '{b}\\n¥{c}' },
+    label: { color: '#d0d0ee', formatter: '{b}\n¥{c}' },
     data: [
       { value: """ + f"{live_total:.2f}" + """, name: '直播计划', itemStyle: { color: '#ff6d00' } },
       { value: """ + f"{nonlive_total:.2f}" + """, name: '非直播计划', itemStyle: { color: '#7c4dff' } }
@@ -260,44 +285,70 @@ window.addEventListener('resize', function() {
 });
 </script>
 </body>
-</html>"""
-
+</html>
+"""
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"Dashboard 已生成: {output_path} ({len(html)} bytes)")
-    return output_path
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file", required=True)
-    parser.add_argument("--output", help="输出 HTML 路径（默认同目录 <原文件名>_dashboard.html）")
-    args = parser.parse_args()
-
-    if not os.path.exists(args.file):
-        print(f"文件不存在: {args.file}")
-        sys.exit(1)
-
-    df = pd.read_excel(args.file, header=0)
-    print(f"读取 {len(df)} 行，列: {df.columns.tolist()}")
-
-    required = ["时间", "本地线索消耗", "本地推交易消耗", "推广形式"]
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        print(f"缺少列: {missing}")
-        sys.exit(1)
-
-    df["日期_str"] = pd.to_datetime(df["时间"]).dt.strftime("%Y-%m-%d")
-    date_range_str = parse_date_range(df["日期_str"])
-
-    if args.output:
-        output_path = args.output
-    else:
-        base = os.path.splitext(os.path.basename(args.file))[0]
-        output_path = os.path.join(os.path.dirname(args.file), f"{base}_dashboard.html")
-
-    generate_html(df, date_range_str, output_path)
+    print(f"✅ Dashboard 生成完成：{output_path}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="生成消耗报表 Dashboard HTML")
+    parser.add_argument("--file", required=True, help="Excel 文件路径")
+    parser.add_argument("--output", default="dashboard.html", help="输出 HTML 路径")
+    args = parser.parse_args()
+
+    # 读取 Excel（自动识别列）
+    xlsx_path = args.file
+    if not os.path.exists(xlsx_path):
+        print(f"❌ 文件不存在：{xlsx_path}")
+        sys.exit(1)
+
+    df = pd.read_excel(xlsx_path)
+    print(f"读取行数：{len(df)}")
+
+    # 找日期列
+    DATE_COLS = ["日期", "日期_str", "日期(推广应用)", "数据日期"]
+    date_col = None
+    for c in DATE_COLS:
+        if c in df.columns:
+            date_col = c
+            break
+    if not date_col:
+        print(f"❌ 未找到日期列，可用列：{list(df.columns)}")
+        sys.exit(1)
+
+    # 找消耗列
+    CLUE_COLS  = ["本地线索消耗", "线索消耗", "线索"]
+    TRADE_COLS = ["本地推交易消耗", "交易消耗", "交易"]
+    FORM_COLS  = ["推广形式", "投放形式", "形式"]
+
+    clue_col  = next((c for c in CLUE_COLS  if c in df.columns), None)
+    trade_col = next((c for c in TRADE_COLS if c in df.columns), None)
+    form_col  = next((c for c in FORM_COLS  if c in df.columns), None)
+
+    if not clue_col or not trade_col:
+        print(f"❌ 未找到消耗列，可用列：{list(df.columns)}")
+        sys.exit(1)
+
+    # 统一列名
+    df = df.rename(columns={
+        date_col:  "日期_str",
+        clue_col:  "本地线索消耗",
+        trade_col: "本地推交易消耗",
+    })
+    if form_col:
+        df = df.rename(columns={form_col: "推广形式"})
+
+    # 解析日期
+    df["日期_dt"] = pd.to_datetime(df["日期_str"], errors="coerce")
+    df = df.dropna(subset=["日期_dt"])
+    df["日期_str"] = df["日期_dt"].dt.strftime("%Y-%m-%d")
+
+    # 过滤非数据行
+    df = df[df["本地线索消耗"].apply(lambda x: str(x).replace('.','').isdigit() if pd.notna(x) else False)]
+
+    date_range = parse_date_range(df["日期_str"])
+    print(f"日期范围：{date_range}，共 {df['日期_str'].nunique()} 天")
+
+    generate_html(df, date_range, args.output)
