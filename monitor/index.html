@@ -195,12 +195,29 @@ function render() {
   tbody.innerHTML = html;
 }
 
+function isInActiveWindow() {
+  var h = new Date().getHours();
+  return h >= 8 && h < 22;
+}
+
 function resetTimers() {
   clearInterval(countdownTimer);
   clearTimeout(refreshTimer);
+  if (!isInActiveWindow()) {
+    document.getElementById('countdown').textContent = '已暂停';
+    document.getElementById('progressFill').style.width = '0%';
+    return;
+  }
   var remaining = REFRESH_INTERVAL;
   countdownTimer = setInterval(function() {
     remaining -= 1;
+    if (!isInActiveWindow()) {
+      clearInterval(countdownTimer);
+      clearTimeout(refreshTimer);
+      document.getElementById('countdown').textContent = '已暂停';
+      document.getElementById('progressFill').style.width = '0%';
+      return;
+    }
     var m = Math.floor(remaining / 60);
     var s = remaining % 60;
     document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
