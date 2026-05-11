@@ -40,3 +40,6 @@
 - `Dashboard更新.py` — 本地更新脚本（飞书机器人调用此脚本）
 - `deploy.sh` — GitHub Actions 调用（自动部署到 Cloudflare Pages）
 - `dashboard.html` — 当前生效的 Dashboard 页面
+
+## 商户监控
+访问: https://consumption-dashboard.pages.dev/monitor
