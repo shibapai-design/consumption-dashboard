@@ -11,7 +11,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:24px 40px;border-bottom:1px solid #2a2a4a}
 .header h1{font-size:22px;font-weight:600;color:#fff;letter-spacing:1px}
 .header p{font-size:13px;color:#8888aa;margin-top:4px}
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;padding:24px 40px}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;padding:24px 40px}
 .kpi-card{background:linear-gradient(135deg,#1e1e3a 0%,#252545 100%);border-radius:12px;padding:20px 24px;border:1px solid #2e2e50;position:relative;overflow:hidden}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .kpi-card.orange::before{background:linear-gradient(90deg,#ff8c00,#ff5500)}
@@ -35,6 +35,8 @@ th{text-align:left;padding:10px 12px;font-size:12px;color:#8888aa;border-bottom:
 td{padding:10px 12px;font-size:13px;color:#d0d0ee;border-bottom:1px solid #1e1e3a}
 tr:hover td{background:#252545}
 th.num,td.num{text-align:right}
+
+.kpi-card.teal::before{background:linear-gradient(90deg,#00897b,#00695c)}
 </style>
 </head>
 <body>
@@ -45,6 +47,11 @@ th.num,td.num{text-align:right}
 </div>
 
 <div class="kpi-row">
+  <div class="kpi-card red">
+    <div class="kpi-label">前一日消耗</div>
+    <div class="kpi-value">¥5,644.03</div>
+    <div class="kpi-sub">2026-05-10 合计</div>
+  </div>
   <div class="kpi-card orange">
     <div class="kpi-label">总消耗</div>
     <div class="kpi-value">¥73,487.79</div>
@@ -65,7 +72,7 @@ th.num,td.num{text-align:right}
     <div class="kpi-value">¥26,681.18</div>
     <div class="kpi-sub">占总量 36.3%</div>
   </div>
-  <div class="kpi-card red">
+  <div class="kpi-card teal">
     <div class="kpi-label">非直播消耗</div>
     <div class="kpi-value">¥46,806.61</div>
     <div class="kpi-sub">占总量 63.7%</div>
