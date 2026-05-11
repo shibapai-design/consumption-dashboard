@@ -3,7 +3,6 @@ name: Deploy Dashboard
 on:
   push:
     branches: [main]
-    paths: ['index.html', 'Dashboard生成.py']
   workflow_dispatch:
 
 jobs:
@@ -14,44 +13,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            dashboard.html
-          sparse-checkout-cone-mode: false
 
-      - name: Deploy to Cloudflare Pages via API
-        run: |
-          echo "=== 文件信息 ==="
-          echo "dashboard.html size: $(wc -c < dashboard.html) bytes"
-          
-          ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
-          API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          
-          echo "=== 获取上传 URL ==="
-          RESP=$(curl -s -X POST \
-            "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/assets/upload" \
-            -H "Authorization: Bearer ${API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{"manifest":{"manifest_version":2,"files":{"dashboard.html":{"content_type":"text/html","size":'"$(wc -c < dashboard.html)"'}}}}')
-          
-          echo "上传响应: $RESP"
-          
-          UPLOAD_URL=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('upload_url',''))")
-          SHORT_ID=$(echo "$RESP" python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('short_id',''))")
-          
-          echo "UPLOAD_URL: $UPLOAD_URL"
-          echo "SHORT_ID: $SHORT_ID"
-          
-          if [ -z "$UPLOAD_URL" ]; then
-            echo "❌ 获取上传 URL 失败"
-            exit 1
-          fi
-          
-          echo "=== 上传 dashboard.html ==="
-          curl -s -X PUT "$UPLOAD_URL" \
-            -H "Content-Type: text/html" \
-            --data-binary @dashboard.html
-          
-          echo ""
-          echo "=== 完成 ==="
-          echo "✅ Dashboard 部署成功: https://consumption-dashboard.pages.dev"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install wrangler
+        run: npm install -g wrangler
+
+      - name: Deploy to Cloudflare Pages
+        run: wrangler pages deploy . --project-name=consumption-dashboard
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Show deployment URL
+        run: echo "✅ Dashboard deployed: https://consumption-dashboard.pages.dev"
