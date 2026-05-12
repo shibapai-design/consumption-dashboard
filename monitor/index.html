@@ -6,27 +6,27 @@
 <title>本地推商户监控</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
-.header{background:linear-gradient(135deg,#1a1d27,#111318);border-bottom:1px solid #2d3748;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.header h1{font-size:20px;font-weight:600;color:#f8fafc}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1d27 0%,#111318 100%);border-bottom:1px solid #2d3748;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:20px;font-weight:600;color:#f8fafc;display:flex;align-items:center;gap:8px}
 .header-right{display:flex;align-items:center;gap:16px;font-size:13px;color:#94a3b8}
 .status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.refresh-btn{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+.refresh-btn{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s}
 .refresh-btn:hover{background:#334155}
 .filters{padding:12px 24px;background:#1a1d27;border-bottom:1px solid #1e293b;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .filter-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;transition:all 0.2s}
 .filter-btn:hover,.filter-btn.active{background:#3b82f6;border-color:#3b82f6;color:#fff}
 .search-box{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:5px 12px;border-radius:6px;font-size:12px;width:140px;outline:none}
 .search-box:focus{border-color:#3b82f6}
-.summary-bar{padding:12px 24px;background:#1e293b;display:grid;grid-template-columns:repeat(5,1fr);gap:12px;border-bottom:1px solid #2d3748}
+.summary-bar{padding:12px 24px;background:#1e293b;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;border-bottom:1px solid #2d3748}
 .summary-item{text-align:center}
-.summary-item .label{font-size:11px;color:#64748b;text-transform:uppercase}
+.summary-item .label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px}
 .summary-item .value{font-size:18px;font-weight:600;color:#f8fafc;margin-top:2px}
-.table-container{padding:16px 24px}
+.table-container{padding:16px 24px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{background:#1a1d27;color:#64748b;font-weight:500;font-size:11px;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid #2d3748;white-space:nowrap}
-tbody tr{border-bottom:1px solid #1e293b}
+thead th{background:#1a1d27;color:#64748b;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:10px 12px;text-align:left;border-bottom:1px solid #2d3748;white-space:nowrap;position:sticky;top:0}
+tbody tr{border-bottom:1px solid #1e293b;transition:background 0.15s}
 tbody tr:hover{background:#1a1d27}
 tbody td{padding:10px 12px;color:#cbd5e1;white-space:nowrap}
 .merchant-name{font-weight:500;color:#f1f5f9;max-width:160px;overflow:hidden;text-overflow:ellipsis}
@@ -39,203 +39,93 @@ tbody td{padding:10px 12px;color:#cbd5e1;white-space:nowrap}
 .badge-ok{background:#064e3b;color:#10b981}
 .badge-warn{background:#78350f;color:#f59e0b}
 .badge-alert{background:#7f1d1d;color:#ef4444}
+.no-data,.loading{text-align:center;padding:60px;color:#475569;font-size:14px}
 .footer{text-align:center;padding:16px;color:#334155;font-size:11px}
-.auto-refresh{display:flex;align-items:center;gap:8px;font-size:12px}
-.progress-bar{width:60px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden}
-.progress-bar .fill{height:100%;background:#3b82f6;transition:width 1s linear}
 </style>
 </head>
 <body>
-
 <div class="header">
   <h1>📊 本地推商户监控</h1>
   <div class="header-right">
-    <div class="auto-refresh">
-      <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
-      <span id="countdown">30:00</span> 后自动刷新
-    </div>
-    <span id="updateTime">—</span>
+    <span id="updateTime">更新: 2026-05-12 20:54:53</span>
     <span class="status-dot"></span>
+    <span id="merchantCount">—</span>
     <button class="refresh-btn" onclick="location.reload()">🔄 刷新</button>
   </div>
 </div>
-
 <div class="filters">
-  <button class="filter-btn active" id="btnAll" onclick="setFilter('all')">全部</button>
-  <button class="filter-btn" id="btnWarn" onclick="setFilter('warn')">⚠️ 余额不足</button>
-  <button class="filter-btn" id="btnHigh" onclick="setFilter('high')">🔥 高消耗</button>
+  <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+  <button class="filter-btn" data-filter="warn" onclick="setFilter('warn')">⚠️ 余额不足</button>
+  <button class="filter-btn" data-filter="high" onclick="setFilter('high')">🔥 高消耗</button>
   <input type="text" class="search-box" placeholder="🔍 搜索商户..." id="searchInput" oninput="doSearch()">
 </div>
-
-<div class="summary-bar">
+<div class="summary-bar" id="summaryBar">
   <div class="summary-item"><div class="label">商户总数</div><div class="value" id="totalMerchants">—</div></div>
   <div class="summary-item"><div class="label">账户总余额</div><div class="value" id="totalBalance">—</div></div>
   <div class="summary-item"><div class="label">今日总消耗</div><div class="value" id="totalConsume">—</div></div>
   <div class="summary-item"><div class="label">总转化数</div><div class="value" id="totalConvert">—</div></div>
   <div class="summary-item"><div class="label">平均转化成本</div><div class="value" id="avgCost">—</div></div>
 </div>
-
-<div class="table-container">
-  <table>
+<div class="table-container" id="tableContainer">
+  <div class="loading" id="loadingState">加载中...</div>
+  <table id="dataTable" style="display:none">
     <thead>
       <tr>
-        <th>商户</th>
-        <th>可用余额</th>
-        <th>实时消耗</th>
-        <th>短视频</th>
-        <th>直播</th>
-        <th>转化数</th>
-        <th>转化成本</th>
-        <th>更新时间</th>
-        <th>状态</th>
+        <th>商户</th><th>可用余额</th><th>实时消耗</th><th>转化数</th><th>转化成本</th><th>更新时间</th><th>状态</th>
       </tr>
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
 </div>
-
-<div class="footer">数据来源：巨量引擎代理商后台 · 每30分钟自动更新</div>
-
+<div class="footer">
+  数据来源：巨量引擎代理商后台 · 每30分钟自动更新
+</div>
 <script>
-var DATA = [];
-var UPDATE_TIME = '';
-var currentFilter = 'all';
-var searchText = '';
-var countdownTimer = null;
-var refreshTimer = null;
-var REFRESH_INTERVAL = 30 * 60;
+const DATA = [{"name": "荆州森屿男士美发", "可用余额": 2580.2, "实时消耗": 466.61, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 3, "转化成本": 155.54, "更新时间": "2026-05-12 20:54"}, {"name": "门博士直播", "可用余额": 571.05, "实时消耗": 171.38, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 1, "转化成本": 171.38, "更新时间": "2026-05-12 20:54"}, {"name": "门博士博恩斯", "可用余额": 3462.8, "实时消耗": 49.78, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 1, "转化成本": 49.78, "更新时间": "2026-05-12 20:54"}, {"name": "门博士家居", "可用余额": 2770.02, "实时消耗": 114.02, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 5, "转化成本": 22.8, "更新时间": "2026-05-12 20:54"}, {"name": "荆州跃动悦型健身", "可用余额": 2344.41, "实时消耗": 261.78, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 1, "转化成本": 261.78, "更新时间": "2026-05-12 20:54"}, {"name": "荆州御松家居", "可用余额": 2565.95, "实时消耗": 28.74, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "清雅全屋定制", "可用余额": 2298.38, "实时消耗": 171.24, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "壹嘉装饰", "可用余额": 219.46, "实时消耗": 460.8, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "荆州市乐家金装", "可用余额": 3610.22, "实时消耗": 176.93, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "鼎慕装饰_荆门公司新", "可用余额": 0.0, "实时消耗": 0.0, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "鼎慕装饰_沙洋分公司", "可用余额": 67.68, "实时消耗": 294.28, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "鼎慕装饰_钟祥公司j", "可用余额": 0.0, "实时消耗": 0.0, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 0, "转化成本": 0, "更新时间": "2026-05-12 20:54"}, {"name": "荆州欧艺装饰", "可用余额": 3172.74, "实时消耗": 654.0, "消耗_短视频": 0, "消耗_直播": 0, "转化数": 1, "转化成本": 654.0, "更新时间": "2026-05-12 20:54"}];
+const UPDATE_TIME = "2026-05-12 20:54:53";
+const allData = DATA.map(f=>({name:f.name||"—",balance:f.可用余额||0,totalConsume:f.实时消耗||0,convert:f.转化数||0,costPer:f.转化成本||0,updateTime:f.更新时间||"—"}));
+let currentFilter="all",searchText="";
 
-function formatMoney(v) {
-  if (v >= 10000) return '¥' + (v / 10000).toFixed(1) + '万';
-  if (v >= 1000) return '¥' + v.toFixed(0);
-  return '¥' + v.toFixed(2);
+function formatMoney(v){if(v>=10000)return"¥"+(v/10000).toFixed(1)+"万";if(v>=1000)return"¥"+v.toFixed(0);return"¥"+v.toFixed(2)}
+function getBalanceClass(v){if(v<=0)return"alert";if(v<100)return"warn";return"ok"}
+function getBadgeClass(v){if(v<=0)return"badge-alert";if(v<100)return"badge-warn";return"badge-ok"}
+function getBadgeText(v){if(v<=0)return"⚠️ 余额耗尽";if(v<100)return"⚠️ 余额不足";return"● 正常"}
+
+function setFilter(f){currentFilter=f;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));document.querySelector(`[data-filter="${f}"]`).classList.add("active");render()}
+function doSearch(){searchText=document.getElementById("searchInput").value.trim().toLowerCase();render()}
+
+function getFiltered(){return allData.filter(item=>{if(currentFilter==="warn"&&item.balance>=100)return false;if(currentFilter==="high"&&item.totalConsume<200)return false;if(searchText&&!item.name.toLowerCase().includes(searchText))return false;return true}))}
+
+function render(){
+  const data=getFiltered();
+  document.getElementById("loadingState").style.display="none";
+  document.getElementById("dataTable").style.display="";
+  const totalBalance=allData.reduce((s,i)=>s+(i.balance||0),0);
+  const totalConsume=allData.reduce((s,i)=>s+(i.totalConsume||0),0);
+  const totalConvert=allData.reduce((s,i)=>s+(i.convert||0),0);
+  const avgCost=totalConvert>0?totalConsume/totalConvert:0;
+  document.getElementById("totalMerchants").textContent=allData.length;
+  document.getElementById("totalBalance").textContent=formatMoney(totalBalance);
+  document.getElementById("totalConsume").textContent=formatMoney(totalConsume);
+  document.getElementById("totalConvert").textContent=totalConvert;
+  document.getElementById("avgCost").textContent=totalConvert>0?"¥"+avgCost.toFixed(1):"—";
+  document.querySelector("[data-filter='warn']").textContent=`⚠️ 余额不足 (${allData.filter(i=>i.balance<100).length})`;
+  document.querySelector("[data-filter='high']").textContent=`🔥 高消耗 (${allData.filter(i=>i.totalConsume>=200).length})`;
+  document.getElementById("merchantCount").textContent=`${data.length} 商户`;
+  const tbody=document.getElementById("tableBody");
+  if(data.length===0){tbody.innerHTML='<tr><td colspan="7" class="no-data">无匹配数据</td></tr>';return}
+  tbody.innerHTML=data.map(item=>`${`<tr>
+    <td class="merchant-name">${item.name}</td>
+    <td class="balance ${getBalanceClass(item.balance)}">${formatMoney(item.balance)}</td>
+    <td class="consume">${formatMoney(item.totalConsume)}</td>
+    <td>${item.convert>0?item.convert:'—'}</td>
+    <td>${item.costPer>0?'¥'+item.costPer.toFixed(1):'—'}</td>
+    <td style="color:#475569;font-size:12px">${item.updateTime}</td>
+    <td><span class="badge ${getBadgeClass(item.balance)}">${getBadgeText(item.balance)}</span></td>
+  </tr>`)}).join("");
 }
-
-function getBalanceClass(v) {
-  if (v <= 0) return 'alert';
-  if (v < 100) return 'warn';
-  return 'ok';
-}
-
-function getBadgeClass(v) {
-  if (v <= 0) return 'badge-alert';
-  if (v < 100) return 'badge-warn';
-  return 'badge-ok';
-}
-
-function getBadgeText(v) {
-  if (v <= 0) return '⚠️ 余额耗尽';
-  if (v < 100) return '⚠️ 余额不足';
-  return '● 正常';
-}
-
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('btn' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
-  render();
-}
-
-function doSearch() {
-  searchText = document.getElementById('searchInput').value.trim().toLowerCase();
-  render();
-}
-
-function getFiltered() {
-  return DATA.filter(function(item) {
-    if (currentFilter === 'warn' && item.balance >= 100) return false;
-    if (currentFilter === 'high' && item.totalConsume < 200) return false;
-    if (searchText && item.name.toLowerCase().indexOf(searchText) === -1) return false;
-    return true;
-  });
-}
-
-function render() {
-  var data = getFiltered();
-  var totalBalance = 0, totalConsume = 0, totalConvert = 0;
-  DATA.forEach(function(i) {
-    totalBalance += (i.balance || 0);
-    totalConsume += (i.totalConsume || 0);
-    totalConvert += (i.convert || 0);
-  });
-  var avgCost = totalConvert > 0 ? totalConsume / totalConvert : 0;
-
-  document.getElementById('totalMerchants').textContent = DATA.length;
-  document.getElementById('totalBalance').textContent = formatMoney(totalBalance);
-  document.getElementById('totalConsume').textContent = formatMoney(totalConsume);
-  document.getElementById('totalConvert').textContent = totalConvert;
-  document.getElementById('avgCost').textContent = totalConvert > 0 ? '¥' + avgCost.toFixed(1) : '—';
-  document.getElementById('updateTime').textContent = UPDATE_TIME;
-
-  var warnCount = DATA.filter(function(i){ return i.balance < 100; }).length;
-  var highCount = DATA.filter(function(i){ return i.totalConsume >= 200; }).length;
-  document.getElementById('btnWarn').textContent = '⚠️ 余额不足 (' + warnCount + ')';
-  document.getElementById('btnHigh').textContent = '🔥 高消耗 (' + highCount + ')';
-
-  var tbody = document.getElementById('tableBody');
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#475569">无匹配数据</td></tr>';
-    return;
-  }
-
-  var html = '';
-  data.forEach(function(item) {
-    html += '<tr>' +
-      '<td class="merchant-name">' + item.name + '</td>' +
-      '<td class="balance ' + getBalanceClass(item.balance) + '">' + formatMoney(item.balance) + '</td>' +
-      '<td class="consume">' + formatMoney(item.totalConsume) + '</td>' +
-      '<td>' + (item.shortVideo > 0 ? formatMoney(item.shortVideo) : '—') + '</td>' +
-      '<td>' + (item.live > 0 ? formatMoney(item.live) : '—') + '</td>' +
-      '<td>' + (item.convert > 0 ? item.convert : '—') + '</td>' +
-      '<td>' + (item.costPer > 0 ? '¥' + item.costPer.toFixed(1) : '—') + '</td>' +
-      '<td style="color:#475569;font-size:12px">' + (item.updateTime || '—') + '</td>' +
-      '<td><span class="badge ' + getBadgeClass(item.balance) + '">' + getBadgeText(item.balance) + '</span></td>' +
-      '</tr>';
-  });
-  tbody.innerHTML = html;
-}
-
-function isInActiveWindow() {
-  var h = new Date().getHours();
-  return h >= 8 && h < 22;
-}
-
-function resetTimers() {
-  clearInterval(countdownTimer);
-  clearTimeout(refreshTimer);
-  if (!isInActiveWindow()) {
-    document.getElementById('countdown').textContent = '已暂停';
-    document.getElementById('progressFill').style.width = '0%';
-    return;
-  }
-  var remaining = REFRESH_INTERVAL;
-  countdownTimer = setInterval(function() {
-    remaining -= 1;
-    if (!isInActiveWindow()) {
-      clearInterval(countdownTimer);
-      clearTimeout(refreshTimer);
-      document.getElementById('countdown').textContent = '已暂停';
-      document.getElementById('progressFill').style.width = '0%';
-      return;
-    }
-    var m = Math.floor(remaining / 60);
-    var s = remaining % 60;
-    document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-    document.getElementById('progressFill').style.width = (remaining / REFRESH_INTERVAL * 100) + '%';
-    if (remaining <= 0) clearInterval(countdownTimer);
-  }, 1000);
-  refreshTimer = setTimeout(function() { location.reload(); }, REFRESH_INTERVAL * 1000);
-}
-
-// Auto-refresh bar starts full
-document.getElementById('progressFill').style.width = '100%';
-
-// Init
-DATA = [{"name":"荆州森屿男士美发","balance":3087.73,"totalConsume":396.0,"shortVideo":396.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"门博士直播","balance":742.43,"totalConsume":121.0,"shortVideo":121.0,"live":0.0,"convert":1,"costPer":121.0,"updateTime":"2026-05-11 19:15"},{"name":"门博士博恩斯","balance":3542.2,"totalConsume":101.0,"shortVideo":101.0,"live":0.0,"convert":5,"costPer":20.2,"updateTime":"2026-05-11 19:15"},{"name":"门博士家居","balance":2884.72,"totalConsume":41.0,"shortVideo":41.0,"live":0.0,"convert":2,"costPer":20.5,"updateTime":"2026-05-11 19:15"},{"name":"荆州跃动悦型健身","balance":2683.92,"totalConsume":321.0,"shortVideo":321.0,"live":0.0,"convert":2,"costPer":160.5,"updateTime":"2026-05-11 19:15"},{"name":"荆州御松家居","balance":2637.31,"totalConsume":0.0,"shortVideo":0.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"清雅全屋定制","balance":2469.98,"totalConsume":46.0,"shortVideo":46.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"壹嘉装饰","balance":790.42,"totalConsume":329.0,"shortVideo":329.0,"live":0.0,"convert":1,"costPer":329.0,"updateTime":"2026-05-11 19:15"},{"name":"荆州市乐家金装","balance":3747.0,"totalConsume":40.0,"shortVideo":40.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"鼎慕装饰_荆门公司新","balance":0.0,"totalConsume":411.0,"shortVideo":411.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"鼎慕装饰_沙洋分公司","balance":407.18,"totalConsume":252.0,"shortVideo":252.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"鼎慕装饰_钟祥公司j","balance":0.0,"totalConsume":0.0,"shortVideo":0.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"},{"name":"荆州欧艺装饰","balance":3828.07,"totalConsume":0.0,"shortVideo":0.0,"live":0.0,"convert":0,"costPer":0.0,"updateTime":"2026-05-11 19:15"}];
-UPDATE_TIME = '更新: 2026-05-11 19:15';
 
 render();
-resetTimers();
 </script>
 </body>
 </html>
