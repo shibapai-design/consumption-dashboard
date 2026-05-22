@@ -47,7 +47,7 @@ tbody td{padding:10px 12px;color:#cbd5e1;white-space:nowrap}
 <div class="header">
   <h1>📊 本地推商户监控</h1>
   <div class="header-right">
-    <span id="updateTime">更新: 2026-05-22 09:15:32</span>
+    <span id="updateTime">更新: 2026-05-22 09:18:12</span>
     <span class="status-dot"></span>
     <span id="merchantCount">—</span>
     <button class="refresh-btn" onclick="location.reload()">🔄 刷新</button>
@@ -82,7 +82,7 @@ tbody td{padding:10px 12px;color:#cbd5e1;white-space:nowrap}
 </div>
 <script>
 const DATA = [];
-const UPDATE_TIME = "2026-05-22 09:15:32";
+const UPDATE_TIME = "2026-05-22 09:18:12";
 const allData = DATA.map(f=>({name:f.name||"—",balance:f.可用余额||0,totalConsume:f.实时消耗||0,convert:f.转化数||0,costPer:f.转化成本||0,updateTime:f.更新时间||"—"}));
 let currentFilter="all",searchText="";
 
